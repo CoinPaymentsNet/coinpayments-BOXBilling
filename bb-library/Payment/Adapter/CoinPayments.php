@@ -68,7 +68,7 @@ class Payment_Adapter_CoinPayments
             'description' => 'Enter your CoinPayments.net Client ID to start accepting payments by CoinPayments. Enable Webhooks and enter Client Secret to recieve payment info',
             'form' => array(
                 'client_id' => array('text', array(
-                    'label' => 'CoinPayments.net Client ID',
+                    'label' => 'Client ID',
                     'validators' => array('notempty'),
                 ),
                 ),
@@ -79,7 +79,7 @@ class Payment_Adapter_CoinPayments
                 ),
                 ),
                 'client_secret' => array('text', array(
-                    'label' => 'CoinPayments.net Client Secret',
+                    'label' => 'Client Secret',
                     'validators' => array(),
                 ),
                 ),
