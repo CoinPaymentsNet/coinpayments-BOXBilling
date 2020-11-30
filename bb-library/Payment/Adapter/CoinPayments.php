@@ -24,6 +24,7 @@ class Payment_Adapter_CoinPayments
 {
 
     const API_URL = 'https://api.coinpayments.net';
+    const CHECKOUT = 'https://CHECKOUT.coinpayments.net';
     const API_VERSION = '1';
 
     const API_SIMPLE_INVOICE_ACTION = 'invoices';
@@ -131,7 +132,7 @@ class Payment_Adapter_CoinPayments
             'cancel-url' => $this->config['cancel_url'],
         );
 
-        return $this->generateForm(sprintf('%s/%s/', static::API_URL, static::API_CHECKOUT_ACTION), $data);
+        return $this->generateForm(sprintf('%s/%s/', static::CHECKOUT, static::API_CHECKOUT_ACTION), $data);
     }
 
     /**
