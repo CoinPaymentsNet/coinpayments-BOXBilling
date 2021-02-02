@@ -20,10 +20,11 @@
  * @license   http://www.boxbilling.com/LICENSE.txt
  * @version   $Id$
  */
-class Payment_Adapter_CoinPayments
+class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 {
 
     const API_URL = 'https://api.coinpayments.net';
+    const CHECKOUT_URL = 'https://checkout.coinpayments.net';
     const API_VERSION = '1';
 
     const API_SIMPLE_INVOICE_ACTION = 'invoices';
@@ -34,6 +35,18 @@ class Payment_Adapter_CoinPayments
     const FIAT_TYPE = 'fiat';
 
     protected $config = array();
+
+    protected $di;
+
+    public function setDi($di)
+    {
+        $this->di = $di;
+    }
+
+    public function getDi()
+    {
+        return $this->di;
+    }
 
     /**
      * Payment_Adapter_CoinPayments constructor.
@@ -131,7 +144,7 @@ class Payment_Adapter_CoinPayments
             'cancel-url' => $this->config['cancel_url'],
         );
 
-        return $this->generateForm(sprintf('%s/%s/', static::API_URL, static::API_CHECKOUT_ACTION), $data);
+        return $this->generateForm(sprintf('%s/%s/', static::CHECKOUT_URL, static::API_CHECKOUT_ACTION), $data);
     }
 
     /**
@@ -344,7 +357,7 @@ class Payment_Adapter_CoinPayments
             ),
         );
 
-        $params = $this->appendInvoiceMetadata($params);
+        $params = $this->appendInvoiceMetadata($params, 'NotesToRecipient');
         return $this->sendRequest('POST', $action, $client_id, $params);
     }
 
@@ -372,7 +385,7 @@ class Payment_Adapter_CoinPayments
             ),
         );
 
-        $params = $this->appendInvoiceMetadata($params);
+        $params = $this->appendInvoiceMetadata($params, 'Notes');
         return $this->sendRequest('POST', $action, $client_id, $params, $client_secret);
     }
 
@@ -436,13 +449,18 @@ class Payment_Adapter_CoinPayments
      * @param $request_data
      * @return mixed
      */
-    protected function appendInvoiceMetadata($request_data)
+    protected function appendInvoiceMetadata($request_data, $notes_field)
     {
         $request_data['metadata'] = array(
             "integration" => "Boxbilling",
             "hostname" => BB_URL,
         );
 
+        $settingService = $this->di['mod_service']('System');
+        $company = $settingService->getCompany();
+        //var_dump("salfhsduifhauoiphfoeijsdpofjfps:   " . $company['name']);
+
+        $request_data[$notes_field] = sprintf("%s / Store name: %s / Order # %s",BB_URL,$company['name'],explode('|', $request_data['invoiceId'])[1]);
         return $request_data;
     }
 
