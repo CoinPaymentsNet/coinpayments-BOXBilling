@@ -357,7 +357,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             ),
         );
 
-        $params = $this->appendInvoiceMetadata($params, 'NotesToRecipient');
+        $params = $this->appendInvoiceMetadata($params, 'notesToRecipient');
         return $this->sendRequest('POST', $action, $client_id, $params);
     }
 
@@ -385,7 +385,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             ),
         );
 
-        $params = $this->appendInvoiceMetadata($params, 'Notes');
+        $params = $this->appendInvoiceMetadata($params, 'notes');
         return $this->sendRequest('POST', $action, $client_id, $params, $client_secret);
     }
 
@@ -458,7 +458,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 
         $settingService = $this->di['mod_service']('System');
         $company = $settingService->getCompany();
-        //var_dump("salfhsduifhauoiphfoeijsdpofjfps:   " . $company['name']);
 
         $request_data[$notes_field] = sprintf("%s / Store name: %s / Order # %s",BB_URL,$company['name'],explode('|', $request_data['invoiceId'])[1]);
         return $request_data;
