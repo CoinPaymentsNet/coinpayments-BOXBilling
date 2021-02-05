@@ -34,6 +34,10 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
     const API_CHECKOUT_ACTION = 'checkout';
     const FIAT_TYPE = 'fiat';
 
+    const PENDING_EVENT = 'Pending';
+    const PAID_EVENT = 'Paid';
+    const CANCELLED_EVENT = 'Cancelled';
+
     protected $config = array();
 
     protected $di;
@@ -128,8 +132,17 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                     }, $webhooks_list['items']);
                 }
 
-                if (!in_array($this->getNotificationUrl($invoice['gateway_id']), $webhooks_urls_list)) {
-                    $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $this->getNotificationUrl($invoice['gateway_id']));
+                $notificationUrlPaid = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'],self::PAID_EVENT);
+                if (!in_array($notificationUrlPaid, $webhooks_urls_list)) {
+                    $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $notificationUrlPaid, self::PAID_EVENT);
+                }
+                $notificationUrlPending = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'],self::PENDING_EVENT);
+                if (!in_array($notificationUrlPending, $webhooks_urls_list)) {
+                    $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $notificationUrlPending, self::PENDING_EVENT);
+                }
+                $notificationUrlCancelled = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'],self::CANCELLED_EVENT);
+                if (!in_array($notificationUrlCancelled, $webhooks_urls_list)) {
+                    $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $notificationUrlCancelled, self::CANCELLED_EVENT);
                 }
             }
             $resp = $this->createMerchantInvoice($this->config['client_id'], $this->config['client_secret'], $coin_currency['id'], $coin_invoice_id, $amount, $display_value);
@@ -166,7 +179,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 
             $request_data = json_decode($content, true);
 
-            if ($this->checkDataSignature($signature, $content, $gateway_id) && isset($request_data['invoice']['invoiceId'])) {
+            if ($this->checkDataSignature($signature, $content, $gateway_id, $request_data['invoice']['status']) && isset($request_data['invoice']['invoiceId'])) {
 
                 $invoice_str = $request_data['invoice']['invoiceId'];
                 $invoice_str = explode('|', $invoice_str);
@@ -205,7 +218,8 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                     $invoice = $api_admin->invoice_get(array('id' => $invoice_id));
                     $client_id = $invoice['client']['id'];
 
-                    if ($status == 'Completed') {
+                    $completed_statuses = array(self::PAID_EVENT, self::PENDING_EVENT);
+                    if (in_array($status, $completed_statuses)) {
                         $bd = array(
                             'id' => $client_id,
                             'amount' => $request_data['invoice']['amount']['displayValue'],
@@ -223,21 +237,12 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                             'updated_at' => date('c'),
                         );
                         $api_admin->invoice_transaction_update($d);
-                    } elseif ($status == 'Cancelled') {
+                    } elseif ($status == self::CANCELLED_EVENT) {
                         $d = array(
                             'id' => $id,
                             'error' => '',
                             'error_code' => '',
                             'status' => 'canceled',
-                            'updated_at' => date('c'),
-                        );
-                        $api_admin->invoice_transaction_update($d);
-                    } else {
-                        $d = array(
-                            'id' => $id,
-                            'error' => '',
-                            'error_code' => '',
-                            'status' => 'pending',
                             'updated_at' => date('c'),
                         );
                         $api_admin->invoice_transaction_update($d);
@@ -251,9 +256,12 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @param $gateway_id
      * @return string
      */
-    protected function getNotificationUrl($gateway_id)
+    protected function getNotificationUrl($gateway_id, $client_id="", $event="")
     {
-        return sprintf('%sbb-ipn.php?bb_gateway_id=%s', BB_URL, $gateway_id);
+        if ($client_id && $event)
+            return sprintf('%sbb-ipn.php?bb_gateway_id=%s&clientId=%s&event=%s', BB_URL, $gateway_id, $client_id, $event);
+        else
+            return sprintf('%sbb-ipn.php?bb_gateway_id=%s', BB_URL, $gateway_id);
     }
 
     /**
@@ -262,9 +270,9 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @param $gateway_id
      * @return bool
      */
-    protected function checkDataSignature($signature, $content, $gateway_id)
+    protected function checkDataSignature($signature, $content, $gateway_id, $event)
     {
-        $request_url = $this->getNotificationUrl($gateway_id);
+        $request_url = $this->getNotificationUrl($gateway_id, $this->config['client_id'], $event);
         $client_secret = $this->config['client_secret'];
         $signature_string = sprintf('%s%s', $request_url, $content);
         $encoded_pure = $this->encodeSignatureString($signature_string, $client_secret);
@@ -314,20 +322,16 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @return bool|mixed
      * @throws Exception
      */
-    protected function createWebHook($client_id, $client_secret, $notification_url)
+    protected function createWebHook($client_id, $client_secret, $notification_url, $event)
     {
 
         $action = sprintf(self::API_WEBHOOK_ACTION, $client_id);
 
         $params = array(
             "notificationsUrl" => $notification_url,
-            "notifications" => array(
-                "invoiceCreated",
-                "invoicePending",
-                "invoicePaid",
-                "invoiceCompleted",
-                "invoiceCancelled",
-            ),
+            "notifications" => [
+                sprintf("invoice%s", $event),
+                ],
         );
 
         return $this->sendRequest('POST', $action, $client_id, $params, $client_secret);
