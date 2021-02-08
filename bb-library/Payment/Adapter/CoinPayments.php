@@ -122,6 +122,18 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         $amount = number_format($invoice['total'], $coin_currency['decimalPlaces'], '', '');
         $display_value = $invoice['total'];
 
+        $billing_data = array(
+            'first_name' => $invoice['buyer']['first_name'],
+            'last_name',
+            'email' => $invoice['buyer']['email'],
+            'company' => $invoice['buyer']['company'],
+            'phone' => $invoice['buyer']['phone']
+        );
+        if ($invoice['buyer']['last_name'] == NULL)
+            $billing_data['last_name'] = "_null_";
+        else
+            $billing_data['last_name'] = $invoice['buyer']['last_name'];
+
         if ($this->config['webhooks']) {
             $webhooks_list = $this->getWebhooksList($this->config['client_id'], $this->config['client_secret']);
             if (!empty($webhooks_list)) {
@@ -145,16 +157,16 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                     $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $notificationUrlCancelled, self::CANCELLED_EVENT);
                 }
             }
-            $resp = $this->createMerchantInvoice($this->config['client_id'], $this->config['client_secret'], $coin_currency['id'], $coin_invoice_id, $amount, $display_value);
+            $resp = $this->createMerchantInvoice($this->config['client_id'], $this->config['client_secret'], $coin_currency['id'], $coin_invoice_id, $amount, $display_value, $billing_data);
             $coin_invoice = array_shift($resp['invoices']);
         } else {
-            $coin_invoice = $this->createSimpleInvoice($this->config['client_id'], $coin_currency['id'], $coin_invoice_id, $amount, $display_value);
+            $coin_invoice = $this->createSimpleInvoice($this->config['client_id'], $coin_currency['id'], $coin_invoice_id, $amount, $display_value, $billing_data);
         }
 
         $data = array(
             'invoice-id' => $coin_invoice['id'],
-            'success-url' => $this->config['return_url'],
-            'cancel-url' => $this->config['cancel_url'],
+            'success-url' => "http://boxbilling/",
+            'cancel-url' => $this->config['cancel_url']
         );
 
         return $this->generateForm(sprintf('%s/%s/', static::CHECKOUT_URL, static::API_CHECKOUT_ACTION), $data);
@@ -331,7 +343,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             "notificationsUrl" => $notification_url,
             "notifications" => [
                 sprintf("invoice%s", $event),
-                ],
+            ],
         );
 
         return $this->sendRequest('POST', $action, $client_id, $params, $client_secret);
@@ -346,7 +358,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @return bool|mixed
      * @throws Exception
      */
-    protected function createSimpleInvoice($client_id, $currency_id = 5057, $invoice_id = 'Validate invoice', $amount = 1, $display_value = '0.01')
+    protected function createSimpleInvoice($client_id, $currency_id = 5057, $invoice_id = 'Validate invoice', $amount = 1, $display_value = '0.01', $billing_data)
     {
 
         $action = self::API_SIMPLE_INVOICE_ACTION;
@@ -354,6 +366,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         $params = array(
             'clientId' => $client_id,
             'invoiceId' => $invoice_id,
+            'buyer' => $this->append_billing_data($billing_data),
             'amount' => array(
                 'currencyId' => $currency_id,
                 "displayValue" => $display_value,
@@ -375,13 +388,14 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @return bool|mixed
      * @throws Exception
      */
-    protected function createMerchantInvoice($client_id, $client_secret, $currency_id, $invoice_id, $amount, $display_value)
+    protected function createMerchantInvoice($client_id, $client_secret, $currency_id, $invoice_id, $amount, $display_value, $billing_data)
     {
 
         $action = self::API_MERCHANT_INVOICE_ACTION;
 
         $params = array(
             "invoiceId" => $invoice_id,
+            "buyer" => $this->append_billing_data($billing_data),
             "amount" => array(
                 "currencyId" => $currency_id,
                 "displayValue" => $display_value,
@@ -391,6 +405,25 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 
         $params = $this->appendInvoiceMetadata($params, 'notes');
         return $this->sendRequest('POST', $action, $client_id, $params, $client_secret);
+    }
+
+    /**
+     * @param array $billing_data
+     * @return bool|mixed
+     * @throws Exception
+     */
+
+    function append_billing_data($billing_data)
+    {
+        return array(
+            "companyName" => $billing_data['company'],
+            "name" => array(
+                "firstName" => $billing_data['first_name'],
+                "lastName" => $billing_data['last_name']
+            ),
+            "emailAddress" => $billing_data['email'],
+            "phoneNumber" => $billing_data['phone']
+        );
     }
 
     /**
@@ -520,7 +553,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
     protected function sendRequest($method, $api_action, $client_id, $params = null, $client_secret = null)
     {
         $response = false;
-
         $api_url = $this->getApiUrl($api_action);
 
         $date = new \Datetime();
@@ -567,6 +599,5 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         }
         return $response;
     }
-
 }
 
