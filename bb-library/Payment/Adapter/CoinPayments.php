@@ -113,7 +113,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      */
     public function getHtml($api_admin, $invoice_id, $subscription)
     {
-
         $invoice = $api_admin->invoice_get(array('id' => $invoice_id));
 
         $coin_invoice_id = sprintf('%s|%s', md5($this->getNotificationUrl($invoice['gateway_id'])), $invoice['nr']);
@@ -134,6 +133,15 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         else
             $billing_data['last_name'] = $invoice['buyer']['last_name'];
 
+        $invoice_params = array(
+            'invoice_id' => $invoice_id,
+            'currency_id' => $coin_currency['id'],
+            'amount' => $amount,
+            'display_value' => $display_value,
+            'billing_data' => $billing_data,
+            'notes_link' => BB_URL . "bb-admin/order/manage/" . $invoice_id,
+        );
+
         if ($this->config['webhooks']) {
             $webhooks_list = $this->getWebhooksList($this->config['client_id'], $this->config['client_secret']);
             if (!empty($webhooks_list)) {
@@ -144,28 +152,28 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                     }, $webhooks_list['items']);
                 }
 
-                $notificationUrlPaid = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'],self::PAID_EVENT);
+                $notificationUrlPaid = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'], self::PAID_EVENT);
                 if (!in_array($notificationUrlPaid, $webhooks_urls_list)) {
                     $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $notificationUrlPaid, self::PAID_EVENT);
                 }
-                $notificationUrlPending = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'],self::PENDING_EVENT);
+                $notificationUrlPending = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'], self::PENDING_EVENT);
                 if (!in_array($notificationUrlPending, $webhooks_urls_list)) {
                     $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $notificationUrlPending, self::PENDING_EVENT);
                 }
-                $notificationUrlCancelled = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'],self::CANCELLED_EVENT);
+                $notificationUrlCancelled = $this->getNotificationUrl($invoice['gateway_id'], $this->config['client_id'], self::CANCELLED_EVENT);
                 if (!in_array($notificationUrlCancelled, $webhooks_urls_list)) {
                     $this->createWebHook($this->config['client_id'], $this->config['client_secret'], $notificationUrlCancelled, self::CANCELLED_EVENT);
                 }
             }
-            $resp = $this->createMerchantInvoice($this->config['client_id'], $this->config['client_secret'], $coin_currency['id'], $coin_invoice_id, $amount, $display_value, $billing_data);
+            $resp = $this->createMerchantInvoice($this->config['client_id'], $this->config['client_secret'], $invoice_params);
             $coin_invoice = array_shift($resp['invoices']);
         } else {
-            $coin_invoice = $this->createSimpleInvoice($this->config['client_id'], $coin_currency['id'], $coin_invoice_id, $amount, $display_value, $billing_data);
+            $coin_invoice = $this->createSimpleInvoice($this->config['client_id'], $invoice_params);
         }
 
         $data = array(
             'invoice-id' => $coin_invoice['id'],
-            'success-url' => "http://boxbilling/",
+            'success-url' => $this->config['return_url'],
             'cancel-url' => $this->config['cancel_url']
         );
 
@@ -185,7 +193,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 
         $signature = isset($tx['ipn']['server']['HTTP_X_COINPAYMENTS_SIGNATURE']) ? $tx['ipn']['server']['HTTP_X_COINPAYMENTS_SIGNATURE'] : false;
         $content = $tx['ipn']['http_raw_post_data'];
-
 
         if ($this->config['webhooks'] && !empty($signature)) {
 
@@ -226,6 +233,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                         $api_admin->invoice_transaction_update(array('id' => $id, 'currency' => $request_data['invoice']['currency']['symbol']));
                     }
 
+                    $this->di['db']->store($tx);
 
                     $invoice = $api_admin->invoice_get(array('id' => $invoice_id));
                     $client_id = $invoice['client']['id'];
@@ -268,7 +276,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @param $gateway_id
      * @return string
      */
-    protected function getNotificationUrl($gateway_id, $client_id="", $event="")
+    protected function getNotificationUrl($gateway_id, $client_id = "", $event = "")
     {
         if ($client_id && $event)
             return sprintf('%sbb-ipn.php?bb_gateway_id=%s&clientId=%s&event=%s', BB_URL, $gateway_id, $client_id, $event);
@@ -358,23 +366,24 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @return bool|mixed
      * @throws Exception
      */
-    protected function createSimpleInvoice($client_id, $currency_id = 5057, $invoice_id = 'Validate invoice', $amount = 1, $display_value = '0.01', $billing_data)
+    protected function createSimpleInvoice($client_id, $invoice_params)
     {
 
         $action = self::API_SIMPLE_INVOICE_ACTION;
 
         $params = array(
             'clientId' => $client_id,
-            'invoiceId' => $invoice_id,
-            'buyer' => $this->append_billing_data($billing_data),
+            'invoiceId' => $invoice_params['invoice_id'],
+            'buyer' => $this->append_billing_data($invoice_params['billing_data']),
             'amount' => array(
-                'currencyId' => $currency_id,
-                "displayValue" => $display_value,
-                'value' => $amount
+                'currencyId' => $invoice_params['currency_id'],
+                'displayValue' => $invoice_params['display_value'],
+                'value' => $invoice_params['amount']
             ),
+            'notesToRecipient' => $invoice_params['notes_link']
         );
 
-        $params = $this->appendInvoiceMetadata($params, 'notesToRecipient');
+        $params = $this->appendInvoiceMetadata($params);
         return $this->sendRequest('POST', $action, $client_id, $params);
     }
 
@@ -388,22 +397,23 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @return bool|mixed
      * @throws Exception
      */
-    protected function createMerchantInvoice($client_id, $client_secret, $currency_id, $invoice_id, $amount, $display_value, $billing_data)
+    protected function createMerchantInvoice($client_id, $client_secret, $invoice_params)
     {
 
         $action = self::API_MERCHANT_INVOICE_ACTION;
 
         $params = array(
-            "invoiceId" => $invoice_id,
-            "buyer" => $this->append_billing_data($billing_data),
+            "invoiceId" => $invoice_params['invoice_id'],
+            "buyer" => $this->append_billing_data($invoice_params['billing_data']),
             "amount" => array(
-                "currencyId" => $currency_id,
-                "displayValue" => $display_value,
-                "value" => $amount,
+                "currencyId" => $invoice_params['currency_id'],
+                "displayValue" => $invoice_params['display_value'],
+                "value" => $invoice_params['amount'],
             ),
+            "notesToRecipient" => $invoice_params['notes_link']
         );
 
-        $params = $this->appendInvoiceMetadata($params, 'notes');
+        $params = $this->appendInvoiceMetadata($params);
         return $this->sendRequest('POST', $action, $client_id, $params, $client_secret);
     }
 
@@ -486,17 +496,15 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @param $request_data
      * @return mixed
      */
-    protected function appendInvoiceMetadata($request_data, $notes_field)
+    protected function appendInvoiceMetadata($request_data)
     {
         $request_data['metadata'] = array(
             "integration" => "Boxbilling",
             "hostname" => BB_URL,
         );
 
-        $settingService = $this->di['mod_service']('System');
-        $company = $settingService->getCompany();
-
-        $request_data[$notes_field] = sprintf("%s / Store name: %s / Order # %s",BB_URL,$company['name'],explode('|', $request_data['invoiceId'])[1]);
+        /*$settingService = $this->di['mod_service']('System');
+        $company = $settingService->getCompany();*/
         return $request_data;
     }
 
@@ -600,4 +608,5 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         return $response;
     }
 }
+
 
