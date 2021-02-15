@@ -122,12 +122,18 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         $display_value = $invoice['total'];
 
         $billing_data = array(
+            'company' => $invoice['buyer']['company'],
             'first_name' => $invoice['buyer']['first_name'],
             'last_name',
             'email' => $invoice['buyer']['email'],
-            'company' => $invoice['buyer']['company'],
-            'phone' => $invoice['buyer']['phone']
+            'phone' => $invoice['buyer']['phone'],
+            'address_1' => $invoice['buyer']['address'],
+            'state' => $invoice['buyer']['state'],
+            'city' => $invoice['buyer']['city'],
+            'country' => $invoice['buyer']['country'],
+            'postcode' => $invoice['buyer']['zip']
         );
+
         if ($invoice['buyer']['last_name'] == NULL)
             $billing_data['last_name'] = "_null_";
         else
@@ -374,7 +380,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         $params = array(
             'clientId' => $client_id,
             'invoiceId' => $invoice_params['invoice_id'],
-            'buyer' => $this->append_billing_data($invoice_params['billing_data']),
             'amount' => array(
                 'currencyId' => $invoice_params['currency_id'],
                 'displayValue' => $invoice_params['display_value'],
@@ -383,6 +388,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             'notesToRecipient' => $invoice_params['notes_link']
         );
 
+        $params = $this->append_billing_data($params, $invoice_params['billing_data']);
         $params = $this->appendInvoiceMetadata($params);
         return $this->sendRequest('POST', $action, $client_id, $params);
     }
@@ -404,7 +410,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 
         $params = array(
             "invoiceId" => $invoice_params['invoice_id'],
-            "buyer" => $this->append_billing_data($invoice_params['billing_data']),
             "amount" => array(
                 "currencyId" => $invoice_params['currency_id'],
                 "displayValue" => $invoice_params['display_value'],
@@ -412,7 +417,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             ),
             "notesToRecipient" => $invoice_params['notes_link']
         );
-
+        $params = $this->append_billing_data($params, $invoice_params['billing_data']);
         $params = $this->appendInvoiceMetadata($params);
         return $this->sendRequest('POST', $action, $client_id, $params, $client_secret);
     }
@@ -423,9 +428,9 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      * @throws Exception
      */
 
-    function append_billing_data($billing_data)
+    function append_billing_data($request_params, $billing_data)
     {
-        return array(
+        $request_params['buyer'] = array(
             "companyName" => $billing_data['company'],
             "name" => array(
                 "firstName" => $billing_data['first_name'],
@@ -434,6 +439,21 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             "emailAddress" => $billing_data['email'],
             "phoneNumber" => $billing_data['phone']
         );
+
+        if (!empty($billing_data['address_1']) &&
+            !empty($billing_data['city']) &&
+            preg_match('/^([A-Z]{2})$/', $billing_data['country'])
+        ) {
+            $request_params['buyer']['address'] = array(
+                'address1' => $billing_data['address_1'],
+                'address2' => $billing_data['address_2'],
+                'provinceOrState' => $billing_data['state'],
+                'city' => $billing_data['city'],
+                'countryCode' => $billing_data['country'],
+                'postalCode' => $billing_data['postcode'],
+            );
+        }
+        return $request_params;
     }
 
     /**
@@ -503,8 +523,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             "hostname" => BB_URL,
         );
 
-        /*$settingService = $this->di['mod_service']('System');
-        $company = $settingService->getCompany();*/
         return $request_data;
     }
 
