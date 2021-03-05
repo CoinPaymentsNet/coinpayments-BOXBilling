@@ -126,7 +126,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
             'amount' => $amount,
             'display_value' => $display_value,
             'billing_data' => $invoice['buyer'],
-            'notes_link' => BB_URL . "bb-admin/order/manage/" . $invoice_id,
+            'notes_link' => sprintf("%s|Store name: %s|Order #%s", BB_URL . "bb-admin/order/manage/" . $invoice_id, $invoice['buyer']['company'], $invoice['nr'])
         );
 
         if ($this->config['webhooks']) {
@@ -172,8 +172,6 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
     public function processTransaction($api_admin, $id, $data, $gateway_id)
     {
         $api_admin->invoice_update(array('id' => $data['invoice_id'], 'status' => 'paid', 'paid_at' => date('c')));
-
-        // $tx = $api_admin->invoice_transaction_get(array('id' => $id));
 
         $signature = isset($tx['ipn']['server']['HTTP_X_COINPAYMENTS_SIGNATURE']) ? $tx['ipn']['server']['HTTP_X_COINPAYMENTS_SIGNATURE'] : false;
         $content = $tx['ipn']['http_raw_post_data'];
