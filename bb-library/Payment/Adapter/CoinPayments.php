@@ -110,9 +110,10 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
     public function getHtml($api_admin, $invoice_id, $subscription)
     {
 
+        $request = new Box_Request();
         if (
-            $this->config['status'] == 'ok' ||
-            $this->config['status'] == 'cancel'
+            $request->get('status') == 'ok' ||
+            $request->get('status') == 'cancel'
         ) {
             return '';
         }
