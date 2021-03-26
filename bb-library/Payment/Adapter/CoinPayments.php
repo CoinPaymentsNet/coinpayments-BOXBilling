@@ -78,8 +78,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      */
     public static function getConfig()
     {
-        $url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        if (strripos($url, 'cart')) {
+        if (strripos($_SERVER['REQUEST_URI'], 'cart')) {
             echo twig_script_tag(BB_URL. "bb-themes/huraga/assets/coinpayments.js");
         }
         return array(

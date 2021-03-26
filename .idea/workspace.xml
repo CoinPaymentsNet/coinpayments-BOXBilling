@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="5bd584a3-b3b6-461a-9b4f-108a02856f0f" name="Default Changelist" comment="Edited link in note to recipient">
+      <change beforePath="$PROJECT_DIR$/bb-library/Payment/Adapter/CoinPayments.php" beforeDir="false" afterPath="$PROJECT_DIR$/bb-library/Payment/Adapter/CoinPayments.php" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="INT-281_Stankevych_BoxBilling" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1oCgWLINBwdqwThrdnmrSdv8GRp" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/bb-themes/huraga/assets" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5bd584a3-b3b6-461a-9b4f-108a02856f0f" name="Default Changelist" comment="" />
+      <created>1612796017023</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1612796017023</updated>
+      <workItem from="1612796019292" duration="801000" />
+      <workItem from="1613056990393" duration="763000" />
+      <workItem from="1613387554094" duration="1851000" />
+      <workItem from="1613395486187" duration="1235000" />
+      <workItem from="1614252671015" duration="2041000" />
+      <workItem from="1614933899671" duration="92000" />
+      <workItem from="1615384678109" duration="825000" />
+      <workItem from="1615467191599" duration="1346000" />
+      <workItem from="1615471037560" duration="1012000" />
+      <workItem from="1615819450701" duration="431000" />
+      <workItem from="1615899566212" duration="9000" />
+      <workItem from="1616751488661" duration="1684000" />
+    </task>
+    <task id="LOCAL-00001" summary="Added activity log information to the site's &quot;Activity&quot; page.&#10;Changed returning URL to the main page.">
+      <created>1612796212799</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1612796212799</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Added hyperlink in the &quot;Notes to recipient&quot; field">
+      <created>1613057135506</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1613057135506</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Added activity log information to the site's &quot;Activity&quot; page.&#10;Changed returning URL to the main page.&#10;Added address information to the billing data function.">
+      <created>1613390347586</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1613390347586</updated>
+    </task>
+    <task id="LOCAL-00004" summary="&quot;Pending&quot; status is removed">
+      <created>1614259564745</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1614259564745</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Edited link in note to recipient">
+      <created>1614933974867</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1614933974867</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added activity log information to the site's &quot;Activity&quot; page.&#10;Changed returning URL to the main page." />
+    <MESSAGE value="Added hyperlink in the &quot;Notes to recipient&quot; field" />
+    <MESSAGE value="Added activity log information to the site's &quot;Activity&quot; page.&#10;Changed returning URL to the main page.&#10;Added address information to the billing data function." />
+    <MESSAGE value="&quot;Pending&quot; status is removed" />
+    <MESSAGE value="Edited link in note to recipient" />
+    <option name="LAST_COMMIT_MESSAGE" value="Edited link in note to recipient" />
+  </component>
+</project>
