@@ -78,7 +78,10 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      */
     public static function getConfig()
     {
-        echo twig_script_tag(BB_URL. "bb-themes/huraga/assets/coinpayments.js" );
+        $url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        if (strripos($url, 'cart')) {
+            echo twig_script_tag(BB_URL. "bb-themes/huraga/assets/coinpayments.js");
+        }
         return array(
             'supports_one_time_payments' => true,
             'supports_subscriptions' => false,
