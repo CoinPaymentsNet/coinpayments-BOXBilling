@@ -118,7 +118,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 
         $request = new Box_Request();
         if (
-            $request->get('status') == '178444ok' ||
+            $request->get('status') == 'ok' ||
             $request->get('status') == 'cancel'
         ) {
             return '';
