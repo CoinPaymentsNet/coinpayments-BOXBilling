@@ -118,7 +118,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
 
         $request = new Box_Request();
         if (
-            $request->get('status') == 'ok' ||
+            $request->get('status') == '178444ok' ||
             $request->get('status') == 'cancel'
         ) {
             return '';
@@ -133,7 +133,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         $display_value = $invoice['total'];
 
         $invoice_params = array(
-            'invoice_id' => $invoice_id,
+            'invoice_id' => $coin_invoice_id,
             'currency_id' => $coin_currency['id'],
             'amount' => $amount,
             'display_value' => $display_value,
@@ -183,7 +183,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
      */
     public function processTransaction($api_admin, $id, $data, $gateway_id)
     {
-        $api_admin->invoice_update(array('id' => $data['invoice_id'], 'status' => 'paid', 'paid_at' => date('c')));
+        $tx = $api_admin->invoice_transaction_get(array('id'=>$id));
 
         $signature = isset($tx['ipn']['server']['HTTP_X_COINPAYMENTS_SIGNATURE']) ? $tx['ipn']['server']['HTTP_X_COINPAYMENTS_SIGNATURE'] : false;
         $content = $tx['ipn']['http_raw_post_data'];
@@ -216,7 +216,7 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                     }
 
                     if (!$tx['txn_status']) {
-                        $api_admin->invoice_transaction_update(array('id' => $id, 'txn_status' => $status));
+                        $api_admin->invoice_transaction_update(array('id' => $id, 'txn_status' => 'processed'));
                     }
 
                     if (!$tx['amount']) {
@@ -227,12 +227,14 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                         $api_admin->invoice_transaction_update(array('id' => $id, 'currency' => $request_data['invoice']['currency']['symbol']));
                     }
 
-                    $this->di['db']->store($tx);
 
                     $invoice = $api_admin->invoice_get(array('id' => $invoice_id));
+
                     $client_id = $invoice['client']['id'];
 
                     if ($status == self::PAID_EVENT) {
+                        $date_now = date('Y-m-d H:i:s');
+                        $api_admin->invoice_update(array('id' => $invoice_id, 'status' => 'paid', 'paid_at' => $date_now));
                         $bd = array(
                             'id' => $client_id,
                             'amount' => $request_data['invoice']['amount']['displayValue'],
@@ -244,19 +246,23 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
                         $api_admin->invoice_batch_pay_with_credits(array('client_id' => $client_id));
                         $d = array(
                             'id' => $id,
-                            'error' => '',
-                            'error_code' => '',
+                            'error' => NULL,
+                            'error_code' => NULL,
                             'status' => 'processed',
-                            'updated_at' => date('c'),
+                            'updated_at' => date('Y-m-d H:i:s'),
                         );
                         $api_admin->invoice_transaction_update($d);
+
                     } elseif ($status == self::CANCELLED_EVENT) {
+                        $date_now = date('Y-m-d H:i:s');
+                        $api_admin->invoice_update(array('id' => $invoice_id, 'status' => 'cancelled', 'paid_at' => $date_now));
+
                         $d = array(
                             'id' => $id,
-                            'error' => '',
-                            'error_code' => '',
-                            'status' => 'canceled',
-                            'updated_at' => date('c'),
+                            'error' => NULL,
+                            'error_code' => NULL,
+                            'status' => 'error',
+                            'updated_at' => date('Y-m-d H:i:s'),
                         );
                         $api_admin->invoice_transaction_update($d);
                     }
@@ -616,5 +622,3 @@ class Payment_Adapter_CoinPayments implements \Box\InjectionAwareInterface
         return $response;
     }
 }
-
-
