@@ -15,3 +15,4 @@ In no event will CoinPayments Inc. or its directors, officers, employees, shareh
 2. Click on Business Tools -> Intergrations -> Pre-built Plugins -> + add Intergration button
 3. Select this plug-in from the dropdown menu
 4. Click the download plugin button
+![Screenshot_3](https://user-images.githubusercontent.com/78020458/126520311-b55a89d9-0b3c-4ae0-a05c-d1e1f9be47b4.jpg)
