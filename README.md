@@ -8,22 +8,10 @@ Demonstration Website Disclaimer:   The information presented on alpha.coinpayme
 
 In no event will CoinPayments Inc. or its directors, officers, employees, shareholders, service providers or agents, be liable to you, or anyone else, for any decision(s) made or action(s) taken in reliance upon the information contained in the Demo Site, nor for any direct, indirect, incidental, special, exemplary, punitive, consequential, or other damages whatsoever (including, but not limited to, liability for loss of use, funds, data or profits) whether in an action of contract, statute, tort or otherwise, relating to the use of the Demo Site.
 
+# Follow the steps below to download this plugin:  
 
-
-# CoinPayments.net Payments Module for BoxBilling
-## Install the Gateway
-
-1. Upload the bb-library folder into your BoxBilling root directory.
-
-2. Upload the bb-themes folder into your BoxBilling root directory to enable styling for "huraga" theme.
-
-## Configure Gateway
-1. In your BoxBilling admin page, go to Configuration, Payment gateways, New payment gateway and click the Install button to the right of CoinPayments.
-
-2. Click the Edit Settings button in the Payment Gateways list to the right of CoinPayments.
-
-3. Select "Yes" next to "Enabled:" and "Allow one time payments:".
-
-4. Select "No" next to "Enable test mode:".
-
-5. Click "Update" to save your settings.
+1. Log into your https://alpha.coinpayments.net/ account
+2. Click on Business Tools -> Intergrations -> Pre-built Plugins -> + add Intergration button
+3. Select this plug-in from the dropdown menu
+4. Click the download plugin button
+![Screenshot_3](https://user-images.githubusercontent.com/78020458/126520311-b55a89d9-0b3c-4ae0-a05c-d1e1f9be47b4.jpg)
