@@ -1,3 +1,5 @@
+> NOTICE: Migrated to [CoinPaymentsNet/plugin-boxbilling](https://github.com/CoinPaymentsNet/plugin-boxbilling).
+
 IMPORTANT NOTE:
 
 This is only for use with: https://alpha.coinpayments.net/
